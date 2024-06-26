@@ -127,9 +127,14 @@ p+scale_x_date(limit=c(as.Date("1999-01-01"),as.Date("2023-12-30")))
 ################
 
 glimpse(main.df)
+unique(main.df$category)
 main.df1 = filter(main.df, main.df$category != "sdoh")
-ggplot(main.df1,aes(x=yrs,y=total,colour=category,group=category)) + 
-  geom_line() + theme_tufte() 
+ggplot(main.df1,aes(x=yrs,y=total,colour=category)) + 
+  geom_line() + 
+  labs(color = "Framework", x = "Year of Publication", y = "PubMed Citations") +
+  scale_color_hue(labels = c("Exposome","Fundamentals","Intersectionality",
+                                "Political Ecology","Risk Environment","Salutogenesis")) +
+  theme_tufte() 
   #scale_color_brewer(palette="Set3") + 
   #scale_x_tufte() + scale_y_tufte()
 

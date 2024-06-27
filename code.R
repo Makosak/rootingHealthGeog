@@ -126,12 +126,15 @@ p+scale_x_date(limit=c(as.Date("1999-01-01"),as.Date("2023-12-30")))
 
 ################
 
-glimpse(main.df)
-unique(main.df$category)
+main.df = read.csv("long-format.csv")
+
 main.df1 = filter(main.df, main.df$category != "sdoh")
+
+head(main.df1)
+
 ggplot(main.df1,aes(x=yrs,y=total,colour=category)) + 
   geom_line() + 
-  labs(color = "Framework", x = "Year of Publication", y = "PubMed Citations") +
+  labs(color = "Framework", x = "Year of Publication", y = "Indexed Publications") +
   scale_color_hue(labels = c("Exposome","Fundamentals","Intersectionality",
                                 "Political Ecology","Risk Environment","Salutogenesis")) +
   theme_tufte() 
@@ -139,5 +142,74 @@ ggplot(main.df1,aes(x=yrs,y=total,colour=category)) +
   #scale_x_tufte() + scale_y_tufte()
 
 
+################
+
+glimpse(sdoh)
+sdoh = filter(main.df, main.df$category != "sdoh" |
+                main.df$category != "geog" | 
+                main.df$category != "Mgeog"| 
+                main.df$category != "Hgeog")
 
 
+#### #### #### 
+geog <- read.csv("data_raw/geography.csv")
+geog$category <- "geog"
+
+Mgeog <- read.csv("data_raw/medGeo.csv")
+Mgeog$category <- "Mgeog"
+head(Mgeog)
+
+Hgeog <- read.csv("data_raw/healthGeo.csv")
+Hgeog$category <- "Hgeog"
+
+geos <- rbind(geog,Hgeog,Mgeog)
+glimpse(geos)
+
+geos$yrs <- lubridate::ymd(geos$Year, truncated = 2L)
+
+geos <- geos %>%
+  select(yrs, Count, category) %>%
+  rename(total = Count)
+
+glimpse(geos) #245 Int
+
+main.df <- rbind(main.df,geos)
+glimpse(main.df) #527
+
+write.csv(main.df, "long-format1.csv")
+
+###############################
+
+main.df = read.csv("long-format1.csv")
+library(ggthemes)
+
+glimpse(main.df)
+summary(main.df)
+main.df$year <- lubridate::ymd(main.df$yrs, truncated = 2L)
+
+
+main.df2 = filter(main.df, main.df$category == "sdoh" | 
+                    main.df$category == "geog" | 
+                    main.df$category == "Mgeog"| 
+                    main.df$category == "Hgeog")
+glimpse(main.df2) #306
+
+ggplot(main.df2,aes(x=year, y=total, fill=category, group=category)) + 
+  geom_bar(stat = 'identity',position='stack') + 
+  labs(color = "Framework", x = "Year of Publication", y = "PubMed Citations") +
+  theme_tufte() 
+
+ggplot(main.df2,aes(x=year,y=total,colour=category)) + 
+  geom_line() + 
+  labs(color = "Concept", x = "Year of Publication", y = "Indexed Publications") + 
+  scale_color_hue(labels = c("Geography","Human Geography",
+                             "Medical Geography", "SDOH")) +
+  theme_tufte() 
+
+ggplot(main.df2,aes(x=year, fill=category, group=category)) + 
+  geom_histogram(position='stack', stat="count") + 
+  labs(fill = "Framework", x = "Year of Publication", y = "Category Count") +
+  scale_fill_hue(labels = c("Geography","Health Geography","Medical Geography","SDOH")) +
+  theme_tufte() 
+
+filter(main.df2, year == 1800) 

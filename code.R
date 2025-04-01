@@ -1,4 +1,4 @@
-setwd("~/code/rootingHealthGeog")
+#setwd("~/Code/rootingHealthGeog")
 library(tidyverse)
 library(lubridate)
 library(ggthemes)
@@ -124,24 +124,6 @@ glimpse(main.df) #327
 ##write.csv(main, "wide-format.csv")
 
 write.csv(main.df, "long-format2.csv")
-##################
-##################
-
-head(main.df)
-unique(main.df$category)
-
-# This doesn't work anymore
-ggplot(main.df, aes(x=yrs,y=total,colour=category)) + 
-  geom_line(aes(y = riskEnv), color="steelblue", linetype="twodash") 
-
-  geom_line(aes(y = Exps), color="green", linetype="twodash") +
-  geom_line(aes(y = funDm), color="purple", linetype="twodash") +
-  geom_line(aes(y = poleco), color="black", linetype="twodash") +
-  geom_line(aes(y = salut), color="orange", linetype="twodash") +
-  geom_line(aes(y = intSct), color="red", linetype="twodash") 
-
-  scale_x_date(limit=c(as.Date("1999-01-01"),as.Date("2023-12-30")))
-
 
 ################
 
@@ -155,7 +137,7 @@ head(main.df1)
 main.df1$yrs <- lubridate::ymd(main.df1$yrs, truncated = 2L)
 glimpse(main.df1)
 
-
+## Figure 3
 ## This one works!!
 ggplot(main.df1,aes(x=yrs,y=total,colour=category)) + 
   geom_line() + 
@@ -167,20 +149,8 @@ ggplot(main.df1,aes(x=yrs,y=total,colour=category)) +
   
   #scale_color_brewer(palette="Set3") + 
 
-#   
 
 ################
-
-main.df = read.csv("long-format2.csv")
-glimpse(main.df)
-
-main.df$yrs <- lubridate::ymd(main.df$yrs, truncated = 2L)
-glimpse(main.df)
-
-sdoh = filter(main.df, main.df$category != "sdoh" |
-                main.df$category != "geog" | 
-                main.df$category != "Mgeog"| 
-                main.df$category != "Hgeog")
 
 #### #### #### 
 geog <- read.csv("data_raw/geography.csv")
@@ -203,44 +173,54 @@ geos <- geos %>%
   rename(total = Count)
 
 glimpse(geos) #245 Int
+glimpse(main.df1)
+main.dfX <- select(main.df1, yrs, total, category) 
+glimpse(main.dfX)
 
-main.df <- rbind(main.df,geos)
-glimpse(main.df) #527
+main.dfM <- rbind(main.dfX,geos)
+glimpse(main.dfM) #511
 
-write.csv(main.df, "long-format1.csv")
 
-###############################
+main.dfM2 <- rbind(main.dfM,df)
+glimpse(main.dfM2) #572
 
-main.df = read.csv("long-format1.csv")
+write.csv(main.dfM2, "long-formatMerged.csv")
 
+###
+
+
+main.df = read.csv("long-formatMerged.csv")
 glimpse(main.df)
-summary(main.df)
-main.df$year <- lubridate::ymd(main.df$yrs, truncated = 2L)
+unique(main.df$category)
 
+main.df$yrs <- lubridate::ymd(main.df$yrs, truncated = 2L)
+glimpse(main.df)
 
-main.df2 = filter(main.df, main.df$category == "sdoh" | 
-                    main.df$category == "geog" | 
-                    main.df$category == "Mgeog"| 
-                    main.df$category == "Hgeog")
-glimpse(main.df2) #306
+geos2 = filter(main.df, main.df$category == "sdoh" | 
+                 main.df$category == "geog" | 
+                 main.df$category == "Mgeog"| 
+                 main.df$category == "Hgeog")
+glimpse(geos2) #306
 
-ggplot(main.df2,aes(x=year, y=total, fill=category, group=category)) + 
+ggplot(geos2,aes(x=yrs, y=total, fill=category, group=category)) + 
   geom_bar(stat = 'identity',position='stack') + 
   labs(color = "Framework", x = "Year of Publication", y = "PubMed Citations") +
   scale_x_date(limit=c(as.Date("1799-01-01"),as.Date("2023-12-30"))) +
   theme_tufte() 
 
+## Figure 1
 ## Line graph of Geog/Health Geog/Medical Geog/SDOOH
-ggplot(main.df2,aes(x=year,y=total,colour=category)) + 
+ggplot(geos2,aes(x=yrs,y=total,colour=category)) + 
   geom_line() + 
   labs(color = "Concept", x = "Year of Publication", y = "Indexed Publications") + 
-  scale_color_hue(labels = c("Geography","Human Geography",
+  scale_color_hue(labels = c("Geography","Health Geography",
                              "Medical Geography", "SDOH")) +
   scale_x_date(limit=c(as.Date("1799-01-01"),as.Date("2023-12-30"))) +
   theme_tufte() 
 
+## Figure 2
 ## Category Count Visual of Geog/Health Geog/Medical Geog/SDOOH
-ggplot(main.df2,aes(x=year, fill=category, group=category)) + 
+ggplot(geos2,aes(x=yrs, fill=category, group=category)) + 
   geom_histogram(position='stack', stat="count") + 
   labs(fill = "Framework", x = "Year of Publication", y = "Category Count") +
   scale_fill_hue(labels = c("Geography","Health Geography","Medical Geography","SDOH")) +
